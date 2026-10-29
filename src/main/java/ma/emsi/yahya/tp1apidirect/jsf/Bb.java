@@ -1,5 +1,5 @@
-package ma.emsi.yahya.tp1apidirect.jsf;
 
+package ma.emsi.yahya.tp1apidirect.jsf;
 
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
@@ -8,8 +8,12 @@ import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import ma.emsi.yahya.tp1apidirect.llm.JsonAdapterPourGemini;
+import ma.emsi.yahya.tp1apidirect.llm.LlmInteraction;
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Named
@@ -33,8 +37,13 @@ public class Bb implements Serializable {
     // Garde les messages echanges pendant le chat.
     private StringBuilder conversation = new StringBuilder();
 
+    // Mode de debogage et affichage des JSON.
+    private boolean debug;
+    private String texteRequeteJson;
+    private String texteReponseJson;
+
     @Inject
-    private GenerateurReponse generateurReponse;
+    private JsonAdapterPourGemini jsonAdapter;
 
     @Inject
     private FacesContext facesContext;
@@ -80,7 +89,31 @@ public class Bb implements Serializable {
         );
     }
 
-    // Verifie la question, appelle le service bonus et affiche le resultat.
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public String getTexteRequeteJson() {
+        return texteRequeteJson;
+    }
+
+    public void setTexteRequeteJson(String texteRequeteJson) {
+        this.texteRequeteJson = texteRequeteJson;
+    }
+
+    public String getTexteReponseJson() {
+        return texteReponseJson;
+    }
+
+    public void setTexteReponseJson(String texteReponseJson) {
+        this.texteReponseJson = texteReponseJson;
+    }
+
+    // Verifie la question et appelle l'API Gemini.
     public String envoyer() {
 
         if (question == null || question.isBlank()) {
@@ -105,30 +138,38 @@ public class Bb implements Serializable {
             return null;
         }
 
-        if (generateurReponse == null) {
+        try {
+            // Transmet le role systeme au debut de la conversation.
+            if (conversation.isEmpty()) {
+                jsonAdapter.setSystemRole(roleSysteme);
+            }
+
+            LlmInteraction interaction =
+                    jsonAdapter.envoyerRequete(question);
+
+            this.reponse = interaction.reponseExtraite();
+            this.texteRequeteJson = interaction.questionJson();
+            this.texteReponseJson = interaction.reponseJson();
+
+            // Le role reste fixe apres le premier echange reussi.
+            roleSystemeChangeable = false;
+
+            // Ajoute le nouvel echange a l'historique.
+            afficherConversation();
+
+        } catch (Exception e) {
+            this.reponse = "Erreur : " + e.getMessage();
+
             FacesMessage message = new FacesMessage(
                     FacesMessage.SEVERITY_ERROR,
-                    "Service indisponible",
-                    "Le service de generation de reponse n'est pas disponible."
+                    "Problème de connexion avec l'API du LLM",
+                    "Problème de connexion avec l'API du LLM : "
+                            + e.getMessage() + "\n"
+                            + Arrays.toString(e.getStackTrace())
             );
 
             facesContext.addMessage(null, message);
-            return null;
         }
-
-        // Le role reste fixe pendant toute la conversation.
-        if (conversation.isEmpty()) {
-            roleSystemeChangeable = false;
-        }
-
-        // Le service recoit le role choisi et le texte de la question.
-        reponse = generateurReponse.genererReponse(
-                roleSysteme,
-                question
-        );
-
-        // On ajoute le nouvel echange a l'historique.
-        afficherConversation();
 
         return null;
     }
