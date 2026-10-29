@@ -1,5 +1,4 @@
-
-package ma.emsi.yahya.tp1apidirect;
+package ma.emsi.yahya.tp1apidirect.jsf;
 
 
 import jakarta.faces.application.FacesMessage;
