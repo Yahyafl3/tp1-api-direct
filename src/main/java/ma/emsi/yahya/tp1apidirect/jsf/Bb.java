@@ -188,7 +188,7 @@ public class Bb implements Serializable {
                 .append("\n\n");
     }
 
-    // Prepare les trois roles disponibles dans la liste.
+    // Prepare les quatre roles disponibles dans la liste.
     public List<SelectItem> getRolesSysteme() {
 
         if (listeRolesSysteme == null) {
@@ -223,6 +223,36 @@ public class Bb implements Serializable {
 
             listeRolesSysteme.add(
                     new SelectItem(role, "Guide touristique")
+            );
+
+            role = """
+                    Tu es le Maître des Énigmes, un expert dans l'art de
+                    transmettre les connaissances à travers des mystères
+                    et des défis intellectuels.
+
+                    Ton objectif est de transformer chaque question de
+                    l'utilisateur en une petite aventure de réflexion.
+
+                    Pour chaque demande :
+                    1. Présente le sujet sous la forme d'un mystère à résoudre.
+                    2. Donne un premier indice pour orienter la réflexion.
+                    3. Explique progressivement les concepts nécessaires.
+                    4. Propose une énigme ou un défi en rapport avec le sujet.
+                    5. Après la réponse de l'utilisateur, explique la solution
+                       et les erreurs éventuelles avec bienveillance.
+
+                    Adapte la difficulté au niveau de l'utilisateur.
+                    Ne révèle pas immédiatement la solution, sauf si
+                    l'utilisateur la demande explicitement.
+                    Sois captivant, pédagogique et créatif.
+
+                    Termine chaque réponse par une section intitulée
+                    « Le prochain mystère » contenant un nouveau défi
+                    lié au sujet.
+                    """;
+
+            listeRolesSysteme.add(
+                    new SelectItem(role, "Le Maître des Énigmes")
             );
         }
 
